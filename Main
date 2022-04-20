@@ -1,0 +1,91 @@
+from logging import root
+from pickle import STOP
+from tkinter import*
+from tkinter import filedialog
+import pygame
+
+root = Tk()
+root.title('MusicPlayer')
+root.iconbitmap('icon.ico')
+root.geometry("500x300")
+
+
+
+pygame.mixer.init()
+
+def addSong():
+    song = filedialog.askopenfilename(initialdir='Music/', title="Choose a Song", filetypes=(("mp3 files", "*.mp3"), ("wav Files", "*.wav"), ))  
+    songBox.insert(END, song)
+
+def addManySongs():
+    songs = filedialog.askopenfilenames(initialdir='Music/', title="Choose a Song", filetypes=(("mp3 files", "*.mp3"), ("wav Files", "*.wav"), ))
+
+    for song in songs:
+        songBox.insert(END, song)
+
+def play():
+    song= songBox.get(ACTIVE)
+    song= f'{song}'
+    pygame.mixer.music.load(song)
+    pygame.mixer.music.play(loops=0)
+
+def stop():
+    pygame.mixer.music.stop()    
+
+global paused
+paused = False
+
+
+def pause(is_paused):
+    global paused
+    paused = is_paused
+
+
+    if paused:
+        pygame.mixer.music.unpause()
+        paused = False
+    else:   
+        pygame.mixer.music.pause()
+        paused = True
+
+    
+songBox = Listbox(root, bg="grey", fg="black", width=60, selectbackground="gray", selectforeground="white")
+songBox.pack(pady=20)
+
+#defineButtons
+backButtonImg = PhotoImage(file='resized/previoussong.png')
+forwardButtonImg= PhotoImage(file='resized/nextsong.png')
+playButtonImg= PhotoImage(file='resized/play.png')
+pauseButtonImg= PhotoImage(file='resized/pause.png')
+stopButtonImg= PhotoImage(file='resized/stop.png')
+
+#createFrames
+controlsFrame = Frame(root)
+controlsFrame.pack()
+
+#createButtons
+backButton = Button(controlsFrame, image=backButtonImg, borderwidth=0) 
+forwardButton = Button(controlsFrame, image=forwardButtonImg, borderwidth=0)
+playButton = Button(controlsFrame, image=playButtonImg, borderwidth=0, command=play)
+pauseButton = Button(controlsFrame, image=pauseButtonImg, borderwidth=0, command=lambda: pause(paused))
+stopButton = Button(controlsFrame, image=stopButtonImg, borderwidth=0, command=stop)
+
+backButton.grid(row=0, column=0, padx=10)
+forwardButton.grid(row=0, column=4, padx=10)
+playButton.grid(row=0, column=1, padx=10)
+pauseButton.grid(row=0, column=2, padx=10)
+stopButton.grid(row=0, column=3, padx=10)
+
+
+#createmenu
+myMenu = Menu(root)
+root.config(menu=myMenu)
+
+#addSOngMenu
+addSongMenu = Menu(myMenu)
+myMenu.add_cascade(label="Add Songs", menu=addSongMenu)
+addSongMenu.add_command(label="Add One Song to Playlist", command= addSong)
+#AddManySongs
+addSongMenu.add_command(label="Add Many Songs to Playlist", command= addManySongs)
+
+root.mainloop()
