@@ -2,20 +2,44 @@ from logging import root
 from pickle import STOP
 from tkinter import*
 from tkinter import filedialog
+from turtle import clear
 import pygame
+import time
+from mutagen.mp3 import MP3
 
 root = Tk()
 root.title('MusicPlayer')
 root.iconbitmap('icon.ico')
-root.geometry("500x300")
-
+root.geometry("500x350")
+global currentSong
+currentSong = 'none'
 
 
 pygame.mixer.init()
 
+def playTime():
+    currentTime = pygame.mixer.music.get_pos() / 1000
+    convertedCurrentTime = time.strftime('%H:%M:%S', time.gmtime(currentTime))
+    
+    currentOne = songBox.curselection()
+    song = songBox.get(currentOne)
+    songMut = MP3(song)
+    songLenght = songMut.info.length
+    convertedTotalTime = time.strftime('%H:%M:%S', time.gmtime(songLenght))
+
+    statusBar.config(text=f'{convertedCurrentTime} / {convertedTotalTime}')
+
+    if songLenght - currentTime < 1 :
+        nextSong()
+
+
+    statusBar.after(1000, playTime)
+
+
 def addSong():
     song = filedialog.askopenfilename(initialdir='Music/', title="Choose a Song", filetypes=(("mp3 files", "*.mp3"), ("wav Files", "*.wav"), ))  
     songBox.insert(END, song)
+    
 
 def addManySongs():
     songs = filedialog.askopenfilenames(initialdir='Music/', title="Choose a Song", filetypes=(("mp3 files", "*.mp3"), ("wav Files", "*.wav"), ))
@@ -23,18 +47,33 @@ def addManySongs():
     for song in songs:
         songBox.insert(END, song)
 
+def deleteSong():
+    ActiveSong = songBox.curselection()
+    ActiveSong = ActiveSong[0]
+    songBox.delete(ACTIVE)
+
+def deleteAllSongs():
+    songBox.delete(0, END)
+    pygame.mixer.music.stop()
+
 def play():
+    global currentSong
     song= songBox.get(ACTIVE)
     song= f'{song}'
     pygame.mixer.music.load(song)
     pygame.mixer.music.play(loops=0)
+    currentSong = songBox.curselection()
+    playTime()
+    print (song)
 
 def stop():
-    pygame.mixer.music.stop()    
+    pygame.mixer.music.stop()
+    songBox.select_clear(ACTIVE)
+    statusBar.config(text='')
+
 
 global paused
 paused = False
-
 
 def pause(is_paused):
     global paused
@@ -48,24 +87,48 @@ def pause(is_paused):
         pygame.mixer.music.pause()
         paused = True
 
-    
+def nextSong():
+    global currentSong
+    nextOne = currentSong
+    nextOne = nextOne[0]+1
+    song = songBox.get(nextOne)
+    pygame.mixer.music.load(song)
+    pygame.mixer.music.play(loops=0)
+    songBox.selection_clear(0, END)
+    songBox.activate(nextOne)
+    songBox.select_set(nextOne, last=None)
+    currentSong = songBox.curselection()
+
+def prevSong():
+    global currentSong
+    nextOne = currentSong
+    nextOne = nextOne[0]-1
+    song = songBox.get(nextOne)
+    pygame.mixer.music.load(song)
+    pygame.mixer.music.play(loops=0)
+    songBox.selection_clear(0, END)
+    songBox.activate(nextOne)
+    songBox.select_set(nextOne, last=None)
+    currentSong = songBox.curselection()
+
+
 songBox = Listbox(root, bg="grey", fg="black", width=60, selectbackground="gray", selectforeground="white")
 songBox.pack(pady=20)
 
 #defineButtons
-backButtonImg = PhotoImage(file='resized/previoussong.png')
-forwardButtonImg= PhotoImage(file='resized/nextsong.png')
-playButtonImg= PhotoImage(file='resized/play.png')
-pauseButtonImg= PhotoImage(file='resized/pause.png')
-stopButtonImg= PhotoImage(file='resized/stop.png')
+backButtonImg = PhotoImage(file='previoussong.png')
+forwardButtonImg= PhotoImage(file='nextsong.png')
+playButtonImg= PhotoImage(file='play.png')
+pauseButtonImg= PhotoImage(file='pause.png')
+stopButtonImg= PhotoImage(file='stop.png')
 
 #createFrames
 controlsFrame = Frame(root)
 controlsFrame.pack()
 
 #createButtons
-backButton = Button(controlsFrame, image=backButtonImg, borderwidth=0) 
-forwardButton = Button(controlsFrame, image=forwardButtonImg, borderwidth=0)
+backButton = Button(controlsFrame, image=backButtonImg, borderwidth=0, command=prevSong) 
+forwardButton = Button(controlsFrame, image=forwardButtonImg, borderwidth=0, command=nextSong)
 playButton = Button(controlsFrame, image=playButtonImg, borderwidth=0, command=play)
 pauseButton = Button(controlsFrame, image=pauseButtonImg, borderwidth=0, command=lambda: pause(paused))
 stopButton = Button(controlsFrame, image=stopButtonImg, borderwidth=0, command=stop)
@@ -87,5 +150,15 @@ myMenu.add_cascade(label="Add Songs", menu=addSongMenu)
 addSongMenu.add_command(label="Add One Song to Playlist", command= addSong)
 #AddManySongs
 addSongMenu.add_command(label="Add Many Songs to Playlist", command= addManySongs)
+#RemoveSong
+removeSongMenu = Menu(myMenu)
+myMenu.add_cascade(label="Remove Songs", menu=removeSongMenu)
+removeSongMenu.add_command(label="Delete song from playlist", command=deleteSong)
+removeSongMenu.add_command(label="Delete all songs from playlist", command=deleteAllSongs)
+
+#crete status bar
+statusBar = Label(root, text='', bd=1, relief=GROOVE, anchor=E)
+statusBar.pack(fill=X, side=BOTTOM, ipady=2)
+
 
 root.mainloop()
