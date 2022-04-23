@@ -6,22 +6,36 @@ from turtle import clear
 import pygame
 import time
 from mutagen.mp3 import MP3
+import sys
+import os
+
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    base_path = getattr(
+        sys,
+        '_MEIPASS',
+        os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
+
 
 root = Tk()
 root.title('MusicPlayer')
-root.iconbitmap('icon.ico')
+root.iconbitmap(resource_path('icon.ico'))
 root.geometry("500x350")
 global currentSong
 currentSong = 'none'
 
 
+
 pygame.mixer.init()
 
 def playTime():
+    global currentSong
     currentTime = pygame.mixer.music.get_pos() / 1000
     convertedCurrentTime = time.strftime('%H:%M:%S', time.gmtime(currentTime))
     
-    currentOne = songBox.curselection()
+    currentOne = currentSong
     song = songBox.get(currentOne)
     songMut = MP3(song)
     songLenght = songMut.info.length
@@ -116,11 +130,11 @@ songBox = Listbox(root, bg="grey", fg="black", width=60, selectbackground="gray"
 songBox.pack(pady=20)
 
 #defineButtons
-backButtonImg = PhotoImage(file='previoussong.png')
-forwardButtonImg= PhotoImage(file='nextsong.png')
-playButtonImg= PhotoImage(file='play.png')
-pauseButtonImg= PhotoImage(file='pause.png')
-stopButtonImg= PhotoImage(file='stop.png')
+backButtonImg = PhotoImage(file=resource_path('previoussong.png'))
+forwardButtonImg= PhotoImage(file=resource_path('nextsong.png'))
+playButtonImg= PhotoImage(file=resource_path('play.png'))
+pauseButtonImg= PhotoImage(file=resource_path('pause.png'))
+stopButtonImg= PhotoImage(file=resource_path('stop.png'))
 
 #createFrames
 controlsFrame = Frame(root)
