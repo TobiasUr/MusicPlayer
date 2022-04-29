@@ -1,13 +1,16 @@
+from distutils.cmd import Command
 from logging import root
 from pickle import STOP
 from tkinter import*
 from tkinter import filedialog
 from turtle import clear
+from winreg import DeleteKey
 import pygame
 import time
 from mutagen.mp3 import MP3
 import sys
 import os
+import keyboard
 
 
 def resource_path(relative_path):
@@ -62,9 +65,14 @@ def addManySongs():
         songBox.insert(END, song)
 
 def deleteSong():
+    print("Delete")
+    global currentSong
     ActiveSong = songBox.curselection()
     ActiveSong = ActiveSong[0]
+    if currentSong == songBox.curselection():
+        pygame.mixer.music.stop()
     songBox.delete(ACTIVE)
+
 
 def deleteAllSongs():
     songBox.delete(0, END)
@@ -173,6 +181,10 @@ removeSongMenu.add_command(label="Delete all songs from playlist", command=delet
 #crete status bar
 statusBar = Label(root, text='', bd=1, relief=GROOVE, anchor=E)
 statusBar.pack(fill=X, side=BOTTOM, ipady=2)
+
+#Keyboard
+keyboard.on_press_key("DELETE", lambda _:deleteSong())
+
 
 
 root.mainloop()
