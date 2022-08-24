@@ -108,6 +108,7 @@ def play():
     currentSong = songBox.curselection()
     global stopped
     stopped = False
+    slider.config(value=0)
     playTime()
 
 global stopped
@@ -164,13 +165,17 @@ def prevSong():
 
 #sliderFunction
 def slide(x):
-    song= songBox.get(ACTIVE)
-    song= f'{song}'
+    song= currentSong
+    song= songBox.get(song)
     pygame.mixer.music.load(song)
     pygame.mixer.music.play(loops=0, start=int(slider.get()))
 
 songBox = Listbox(root, bg="grey", fg="black", width=60, selectbackground="gray", selectforeground="white")
 songBox.pack(pady=20)
+
+#volumeSliderFunction
+def volumeSlide(x):
+    pygame.mixer.music.set_volume(volumeSlider.get())
 
 #defineButtons
 backButtonImg = PhotoImage(file=resource_path('previoussong.png'))
@@ -221,6 +226,9 @@ statusBar.pack(fill=X, side=BOTTOM, ipady=2)
 slider = ttk.Scale(root, from_=0, to=100, orient=HORIZONTAL, value=0, command=slide, length=360)
 slider.pack(pady=20)
 
+#CrateVolumeSlider
+volumeSlider = ttk.Scale(root, from_=0, to=1, orient=HORIZONTAL, value=100, command=volumeSlide, length=100,)
+volumeSlider.pack(side=BOTTOM, ipady=2)
 
 #Keyboard
 
